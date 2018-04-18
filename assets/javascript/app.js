@@ -25,6 +25,7 @@ const statusDiv = $("#statusDiv");
 const whoAmIDiv = $("#whoAmIDiv");
 const gameButtons = $("#gameButtons");
 let pageJustLoaded = true;
+let playersRPSValue = {};
 
 // Function Declarations
 
@@ -51,20 +52,22 @@ const updateStatus = function(){
 };
 
 const saveRPSValue = function(player, value, otherplayer){
-    database.ref(`player${player}RPS`).set(value);
+    database.ref(`player${player}RPSValue`).set(value);
     gameButtons.hide();
-    statusDiv.append(`<p>Waiting for player ${otherplayer}.</p>`);
+    if (playersRPSValue[`player${otherplayer}`] === "") {
+        statusDiv.append(`<p>Waiting for Player ${otherplayer}.</p>`);
+    }
 };
 
 // Function Calls
 
-database.ref("playerOne").on("value", function(snapshot){
+database.ref("isPlayerOne").on("value", function(snapshot){
     isPlayerOne = snapshot.val();
     if (!pageJustLoaded) {
         updateStatus();
     }
     if (pageJustLoaded) {
-        database.ref("playerTwo").on("value", function(snapshot){
+        database.ref("isPlayerTwo").on("value", function(snapshot){
             isPlayerTwo = snapshot.val();
             if (!pageJustLoaded) {
                 updateStatus();
@@ -94,14 +97,14 @@ database.ref("playerOne").on("value", function(snapshot){
 gameStartButton.on("click", function(){
     if (!isPlayerOne) {
         whoAmI = "playerOne";
-        database.ref("playerOne").set(true);
+        database.ref("isPlayerOne").set(true);
         statusDiv.empty();
         whoAmIDiv.append(`<h3>Player One</h3>`);
         statusDiv.append(`<p id="waiting">Waiting for Player Two to join.</p>`);
         gameStartButton.hide();
     } else if (!isPlayerTwo) {
         whoAmI = "playerTwo";
-        database.ref("playerTwo").set(true);
+        database.ref("isPlayerTwo").set(true);
         statusDiv.empty();
         whoAmIDiv.append(`<h3>Player Two</h3>`);
         gameStartButton.hide();
@@ -110,24 +113,32 @@ gameStartButton.on("click", function(){
 
 $("#rock").on("click", function(){
     if (whoAmI === "playerOne") {
-        saveRPSValue("One", "rock", "two");
+        saveRPSValue("One", "rock", "Two");
     } else {
-        saveRPSValue("Two", "rock", "one");
+        saveRPSValue("Two", "rock", "One");
     }
 });
 
 $("#paper").on("click", function(){
     if (whoAmI === "playerOne") {
-        saveRPSValue("One", "paper", "two");
+        saveRPSValue("One", "paper", "Two");
     } else {
-        saveRPSValue("Two", "paper", "one");
+        saveRPSValue("Two", "paper", "One");
     }
 });
 
 $("#scissors").on("click", function(){
     if (whoAmI === "playerOne") {
-        saveRPSValue("One", "scissors", "two");
+        saveRPSValue("One", "scissors", "Two");
     } else {
-        saveRPSValue("Two", "scissors", "one");
+        saveRPSValue("Two", "scissors", "One");
     }
+});
+
+database.ref("playerOneRPSValue").on("value", function(snapshot){
+    playersRPSValue.playerOne = snapshot.val();
+});
+
+database.ref("playerTwoRPSValue").on("value", function(snapshot){
+    playersRPSValue.playerTwo = snapshot.val();
 });
