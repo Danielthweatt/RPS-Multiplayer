@@ -22,6 +22,7 @@ let whoAmI = "nobody";
 const gameStartButton = $("#gameStartButton");
 const gameDiv = $("#gameDiv");
 const statusDiv = $("#statusDiv");
+const whoAmIDiv = $("#whoAmIDiv");
 const gameButtons = $("#gameButtons");
 let pageJustLoaded = true;
 
@@ -36,6 +37,14 @@ const updateStatus = function(){
             } else {
                 gameStartButton.hide();
                 statusDiv.empty().append(`<p>Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
+            }
+        } else {
+            if (!isPlayerTwo) {
+                gameStartButton.show();
+                statusDiv.empty().append(`<p>No one is playing now. If you are ready to play, you will be player one!</p>`);
+            } else {
+                gameStartButton.hide();
+                statusDiv.empty().append(`<p>Hold on...</p>`);
             }
         }
     }
@@ -54,7 +63,9 @@ database.ref("playerOne").on("value", function(snapshot){
             if (!pageJustLoaded) {
                 updateStatus();
                 if (isPlayerOne && isPlayerTwo && whoAmI !== "nobody") {
-                    $("#waiting").hide();
+                    if (whoAmI === "playerOne") {
+                        statusDiv.empty();
+                    }
                     gameButtons.show();
                 }
             }
@@ -78,13 +89,39 @@ gameStartButton.on("click", function(){
     if (!isPlayerOne) {
         whoAmI = "playerOne";
         database.ref("playerOne").set(true);
-        statusDiv.empty().append(`<h3>Player One</h3>`);
+        statusDiv.empty();
+        whoAmIDiv.append(`<h3>Player One</h3>`);
         statusDiv.append(`<p id="waiting">Waiting for Player Two to join.</p>`);
         gameStartButton.hide();
     } else if (!isPlayerTwo) {
         whoAmI = "playerTwo";
         database.ref("playerTwo").set(true);
-        statusDiv.empty().append(`<h3>Player Two</h3>`);
+        statusDiv.empty();
+        whoAmIDiv.append(`<h3>Player Two</h3>`);
         gameStartButton.hide();
+    }
+});
+
+$("#rock").on("click", function(){
+    if (whoAmI === "playerOne") {
+        database.ref("playerOneRPS").set("rock");
+    } else {
+        database.ref("playerTwoRPS").set("rock");
+    }
+});
+
+$("#paper").on("click", function(){
+    if (whoAmI === "playerOne") {
+        database.ref("playerOneRPS").set("paper");
+    } else {
+        database.ref("playerTwoRPS").set("paper");
+    }
+});
+
+$("#scissors").on("click", function(){
+    if (whoAmI === "playerOne") {
+        database.ref("playerOneRPS").set("scissors");
+    } else {
+        database.ref("playerTwoRPS").set("scissors");
     }
 });
