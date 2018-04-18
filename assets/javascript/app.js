@@ -18,7 +18,7 @@ firebase.initializeApp(config);
 const database = firebase.database();
 let isPlayerOne;
 let isPlayerTwo;
-let whoAmI;
+let whoAmI = "nobody";
 const gameStartButton = $("#gameStartButton");
 const gameDiv = $("#gameDiv");
 const statusDiv = $("#statusDiv");
@@ -26,11 +26,15 @@ let pageJustLoaded = true;
 
 // Function Declarations
 
-const updateStatus = function() {
-    if (isPlayerOne) {
-        if ($("#status").text() === "If you are ready to play, you will be player one!") {
+const updateStatus = function(){
+    if (whoAmI === "nobody") {
+        if (isPlayerOne) {
             if (!isPlayerTwo) {
-                $("#status").text("Someone is now player one. If you are ready to play, you will be player two!");
+                gameStartButton.show();
+                statusDiv.empty().append(`<p class="text-center">There is now a player one, but no player two! If you are ready to play, you will be player two!</p>`);
+            } else {
+                gameStartButton.hide();
+                statusDiv.empty().append(`<p class="text-center">Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
             }
         }
     }
@@ -40,17 +44,21 @@ const updateStatus = function() {
 
 database.ref("playerOne").on("value", function(snapshot){
     isPlayerOne = snapshot.val();
-    updateStatus();
+    if (!pageJustLoaded) {
+        updateStatus();
+    }
     if (pageJustLoaded) {
         database.ref("playerTwo").on("value", function(snapshot){
             isPlayerTwo = snapshot.val();
-            updateStatus();
+            if (!pageJustLoaded) {
+                updateStatus();
+            }
             if (pageJustLoaded) {
                 if (!isPlayerOne) {
-                    statusDiv.append(`<p id="status" class="text-center">If you are ready to play, you will be player one!</p>`);
+                    statusDiv.append(`<p class="text-center">If you are ready to play, you will be player one!</p>`);
                     gameStartButton.show();
                 } else if (!isPlayerTwo) {
-                    statusDiv.append(`<p id="status" class="text-center">If you are ready to play, you will be player two!</p>`);
+                    statusDiv.append(`<p class="text-center">If you are ready to play, you will be player two!</p>`);
                     gameStartButton.show();
                 } else {
                     statusDiv.append(`<p class="text-center">Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
@@ -64,14 +72,14 @@ database.ref("playerOne").on("value", function(snapshot){
 
 gameStartButton.on("click", function(){
     if (!isPlayerOne) {
-        database.ref("playerOne").set(true);
         whoAmI = "playerOne";
+        database.ref("playerOne").set(true);
         statusDiv.empty().append(`<h3 class="text-center">Player One</h3>`);
+        statusDiv.append(`<p class="text-center">Waiting for Player Two to join.</p>`);
         gameStartButton.hide();
-        gameDiv.append(`<p class="text-center">Waiting for Player Two to join.</p>`);
     } else if (!isPlayerTwo) {
-        database.ref("playerTwo").set(true);
         whoAmI = "playerTwo";
+        database.ref("playerTwo").set(true);
         statusDiv.empty().append(`<h3 class="text-center">Player Two</h3>`);
         gameStartButton.hide();
     }
