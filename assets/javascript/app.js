@@ -19,11 +19,13 @@ const database = firebase.database();
 let isPlayerOne;
 let isPlayerTwo;
 let whoAmI = "nobody";
+let opponent;
 const gameStartButton = $("#gameStartButton");
 const gameDiv = $("#gameDiv");
 const statusDiv = $("#statusDiv");
 const whoAmIDiv = $("#whoAmIDiv");
 const gameButtons = $("#gameButtons");
+const restartButton = $("#restartButton");
 let pageJustLoaded = true;
 let playersRPSValue = {};
 
@@ -52,16 +54,30 @@ const updateStatus = function(){
 };
 
 const saveRPSValue = function(player, value, otherplayer){
-    database.ref(`player${player}RPSValue`).set(value);
     gameButtons.hide();
     if (playersRPSValue[`player${otherplayer}`] === "") {
-        statusDiv.append(`<p>Waiting for Player ${otherplayer}.</p>`);
+        statusDiv.empty().append(`<p>Waiting for Player ${otherplayer}.</p>`);
     }
+    database.ref(`player${player}RPSValue`).set(value);
 };
 
 const compareRPSValues = function(){
-    if (playersRPSValue.playerOne !== "" && playersRPSValue.playerTwo !== "") {
+    if (playersRPSValue.playerOne !== "" && playersRPSValue.playerTwo !== "" && whoAmI !== "nobody") {
         statusDiv.empty();
+        if (playersRPSValue.playerOne === playersRPSValue.playerTwo) {
+            statusDiv.append(`<p>Tie!</p>`);
+        } else {
+            if (playersRPSValue.playerOne === "rock" && playersRPSValue.playerTwo === "scissors") {
+                statusDiv.append(`<p>Player One wins!</p>`);
+            } else if (playersRPSValue.playerOne === "paper" && playersRPSValue.playerTwo === "rock") {
+                statusDiv.append(`<p>Player One wins!</p>`);
+            } else if (playersRPSValue.playerOne === "scissors" && playersRPSValue.playerTwo === "paper") {
+                statusDiv.append(`<p>Player One wins!</p>`);
+            } else {
+                statusDiv.append(`<p>Player Two wins!</p>`);
+            }
+        }
+        restartButton.show();
     }
 };
 
@@ -78,9 +94,7 @@ database.ref("isPlayerOne").on("value", function(snapshot){
             if (!pageJustLoaded) {
                 updateStatus();
                 if (isPlayerOne && isPlayerTwo && whoAmI !== "nobody") {
-                    if (whoAmI === "playerOne") {
-                        statusDiv.empty();
-                    }
+                    statusDiv.empty().append(`<p>Play!</p>`);
                     gameButtons.show();
                 }
             }
@@ -102,14 +116,16 @@ database.ref("isPlayerOne").on("value", function(snapshot){
 
 gameStartButton.on("click", function(){
     if (!isPlayerOne) {
-        whoAmI = "playerOne";
+        whoAmI = "One";
+        opponent = "Two";
         database.ref("isPlayerOne").set(true);
         statusDiv.empty();
         whoAmIDiv.append(`<h3>Player One</h3>`);
-        statusDiv.append(`<p id="waiting">Waiting for Player Two to join.</p>`);
+        statusDiv.append(`<p>Waiting for Player Two to join.</p>`);
         gameStartButton.hide();
     } else if (!isPlayerTwo) {
-        whoAmI = "playerTwo";
+        whoAmI = "Two";
+        opponent = "One";
         database.ref("isPlayerTwo").set(true);
         statusDiv.empty();
         whoAmIDiv.append(`<h3>Player Two</h3>`);
@@ -118,27 +134,15 @@ gameStartButton.on("click", function(){
 });
 
 $("#rock").on("click", function(){
-    if (whoAmI === "playerOne") {
-        saveRPSValue("One", "rock", "Two");
-    } else {
-        saveRPSValue("Two", "rock", "One");
-    }
+    saveRPSValue(whoAmI, "rock", opponent);
 });
 
 $("#paper").on("click", function(){
-    if (whoAmI === "playerOne") {
-        saveRPSValue("One", "paper", "Two");
-    } else {
-        saveRPSValue("Two", "paper", "One");
-    }
+    saveRPSValue(whoAmI, "paper", opponent);
 });
 
 $("#scissors").on("click", function(){
-    if (whoAmI === "playerOne") {
-        saveRPSValue("One", "scissors", "Two");
-    } else {
-        saveRPSValue("Two", "scissors", "One");
-    }
+    saveRPSValue(whoAmI, "scissors", opponent);
 });
 
 database.ref("playerOneRPSValue").on("value", function(snapshot){
@@ -149,4 +153,22 @@ database.ref("playerOneRPSValue").on("value", function(snapshot){
 database.ref("playerTwoRPSValue").on("value", function(snapshot){
     playersRPSValue.playerTwo = snapshot.val();
     compareRPSValues();
+});
+
+restartButton.on("click", function(){
+    restartButton.hide();
+    database.ref("playerOneRPSValue").set("");
+    database.ref("playerTwoRPSValue").set("");
+    database.ref(`player${whoAmI}Again`).set(true);
+    database.ref(`player${opponent}Again`).on("value", function(snapshot){
+        if (snapshot.val() === false) {
+            statusDiv.empty().append(`<p>Waiting for Player ${opponent} to be ready.</p>`);
+        } else {
+            statusDiv.empty().append(`<p>Play!</p>`);
+            gameButtons.show();
+            database.ref(`player${opponent}Again`).off("value");
+            database.ref(`player${whoAmI}Again`).set(false);
+            database.ref(`player${opponent}Again`).set(false);
+        }
+    });
 });
