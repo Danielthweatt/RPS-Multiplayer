@@ -22,6 +22,7 @@ let whoAmI = "nobody";
 const gameStartButton = $("#gameStartButton");
 const gameDiv = $("#gameDiv");
 const statusDiv = $("#statusDiv");
+const gameButtons = $("#gameButtons");
 let pageJustLoaded = true;
 
 // Function Declarations
@@ -31,10 +32,10 @@ const updateStatus = function(){
         if (isPlayerOne) {
             if (!isPlayerTwo) {
                 gameStartButton.show();
-                statusDiv.empty().append(`<p class="text-center">There is now a player one, but no player two! If you are ready to play, you will be player two!</p>`);
+                statusDiv.empty().append(`<p>There is now a player one, but no player two! If you are ready to play, you will be player two!</p>`);
             } else {
                 gameStartButton.hide();
-                statusDiv.empty().append(`<p class="text-center">Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
+                statusDiv.empty().append(`<p>Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
             }
         }
     }
@@ -52,16 +53,20 @@ database.ref("playerOne").on("value", function(snapshot){
             isPlayerTwo = snapshot.val();
             if (!pageJustLoaded) {
                 updateStatus();
+                if (isPlayerOne && isPlayerTwo && whoAmI !== "nobody") {
+                    $("#waiting").hide();
+                    gameButtons.show();
+                }
             }
             if (pageJustLoaded) {
                 if (!isPlayerOne) {
-                    statusDiv.append(`<p class="text-center">If you are ready to play, you will be player one!</p>`);
+                    statusDiv.append(`<p>If you are ready to play, you will be player one!</p>`);
                     gameStartButton.show();
                 } else if (!isPlayerTwo) {
-                    statusDiv.append(`<p class="text-center">If you are ready to play, you will be player two!</p>`);
+                    statusDiv.append(`<p>If you are ready to play, you will be player two!</p>`);
                     gameStartButton.show();
                 } else {
-                    statusDiv.append(`<p class="text-center">Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
+                    statusDiv.append(`<p>Sorry! Two people are playing the game right now. No more than two players can play at one time.</p>`);
                 }
                 pageJustLoaded = false;
             }
@@ -69,18 +74,17 @@ database.ref("playerOne").on("value", function(snapshot){
     }
 });
 
-
 gameStartButton.on("click", function(){
     if (!isPlayerOne) {
         whoAmI = "playerOne";
         database.ref("playerOne").set(true);
-        statusDiv.empty().append(`<h3 class="text-center">Player One</h3>`);
-        statusDiv.append(`<p class="text-center">Waiting for Player Two to join.</p>`);
+        statusDiv.empty().append(`<h3>Player One</h3>`);
+        statusDiv.append(`<p id="waiting">Waiting for Player Two to join.</p>`);
         gameStartButton.hide();
     } else if (!isPlayerTwo) {
         whoAmI = "playerTwo";
         database.ref("playerTwo").set(true);
-        statusDiv.empty().append(`<h3 class="text-center">Player Two</h3>`);
+        statusDiv.empty().append(`<h3>Player Two</h3>`);
         gameStartButton.hide();
     }
 });
