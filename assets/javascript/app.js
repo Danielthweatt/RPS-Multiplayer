@@ -66,15 +66,20 @@ const compareRPSValues = function(){
         statusDiv.empty();
         if (playersRPSValue.playerOne === playersRPSValue.playerTwo) {
             statusDiv.append(`<p>Tie!</p>`);
+            statusDiv.append(`<p>Press the button below to play again or just exit the page to be done.</p>`);
         } else {
             if (playersRPSValue.playerOne === "rock" && playersRPSValue.playerTwo === "scissors") {
                 statusDiv.append(`<p>Player One wins!</p>`);
+                statusDiv.append(`<p>Press the button below to play again or just exit the page to be done.</p>`);
             } else if (playersRPSValue.playerOne === "paper" && playersRPSValue.playerTwo === "rock") {
                 statusDiv.append(`<p>Player One wins!</p>`);
+                statusDiv.append(`<p>Press the button below to play again or just exit the page to be done.</p>`);
             } else if (playersRPSValue.playerOne === "scissors" && playersRPSValue.playerTwo === "paper") {
                 statusDiv.append(`<p>Player One wins!</p>`);
+                statusDiv.append(`<p>Press the button below to play again or just exit the page to be done.</p>`);
             } else {
                 statusDiv.append(`<p>Player Two wins!</p>`);
+                statusDiv.append(`<p>Press the button below to play again or just exit the page to be done.</p>`);
             }
         }
         restartButton.show();
@@ -94,7 +99,9 @@ database.ref("isPlayerOne").on("value", function(snapshot){
             if (!pageJustLoaded) {
                 updateStatus();
                 if (isPlayerOne && isPlayerTwo && whoAmI !== "nobody") {
-                    statusDiv.empty().append(`<p>Play!</p>`);
+                    if (whoAmI === "One") {
+                        statusDiv.empty().append(`<p>Play!</p>`);
+                    }
                     gameButtons.show();
                 }
             }
@@ -127,7 +134,7 @@ gameStartButton.on("click", function(){
         whoAmI = "Two";
         opponent = "One";
         database.ref("isPlayerTwo").set(true);
-        statusDiv.empty();
+        statusDiv.empty().append(`<p>Play!</p>`);
         whoAmIDiv.append(`<h3>Player Two</h3>`);
         gameStartButton.hide();
     }
