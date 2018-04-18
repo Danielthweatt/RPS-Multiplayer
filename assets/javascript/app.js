@@ -59,6 +59,12 @@ const saveRPSValue = function(player, value, otherplayer){
     }
 };
 
+const compareRPSValues = function(){
+    if (playersRPSValue.playerOne !== "" && playersRPSValue.playerTwo !== "") {
+        statusDiv.empty();
+    }
+};
+
 // Function Calls
 
 database.ref("isPlayerOne").on("value", function(snapshot){
@@ -137,8 +143,10 @@ $("#scissors").on("click", function(){
 
 database.ref("playerOneRPSValue").on("value", function(snapshot){
     playersRPSValue.playerOne = snapshot.val();
+    compareRPSValues();
 });
 
 database.ref("playerTwoRPSValue").on("value", function(snapshot){
     playersRPSValue.playerTwo = snapshot.val();
+    compareRPSValues();
 });
