@@ -179,3 +179,7 @@ restartButton.on("click", function(){
         }
     });
 });
+
+// This app still needs work. I need code here that will register in firebase when a player 
+// leaves the game. Correspondingly, I need to write code above that will tell the other player 
+// that their opponent has left the game.
