@@ -126,6 +126,7 @@ gameStartButton.on("click", function(){
         whoAmI = "One";
         opponent = "Two";
         database.ref("isPlayerOne").set(true);
+        database.ref("isPlayerOne").onDisconnect().set(false);
         statusDiv.empty();
         whoAmIDiv.append(`<h3>Player One</h3>`);
         statusDiv.append(`<p>Waiting for Player Two to join.</p>`);
@@ -134,6 +135,7 @@ gameStartButton.on("click", function(){
         whoAmI = "Two";
         opponent = "One";
         database.ref("isPlayerTwo").set(true);
+        database.ref("isPlayerTwo").onDisconnect().set(false);
         statusDiv.empty().append(`<p>Play!</p>`);
         whoAmIDiv.append(`<h3>Player Two</h3>`);
         gameStartButton.hide();
@@ -179,7 +181,3 @@ restartButton.on("click", function(){
         }
     });
 });
-
-// This app still needs work. I need code here that will register in firebase when a player 
-// leaves the game. Correspondingly, I need to write code above that will tell the other player 
-// that their opponent has left the game.
