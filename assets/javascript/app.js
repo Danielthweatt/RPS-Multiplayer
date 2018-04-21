@@ -52,7 +52,7 @@ const updateStatus = function(){
             }
         }
     } else if (gameOn === true) {
-        if (whoAmI = "Two") {
+        if (whoAmI === "Two") {
             restartButton.hide();
             gameButtons.hide();
             gameOn = false;
