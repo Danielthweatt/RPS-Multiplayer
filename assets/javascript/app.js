@@ -28,6 +28,7 @@ const gameButtons = $("#gameButtons");
 const restartButton = $("#restartButton");
 let pageJustLoaded = true;
 let playersRPSValue = {};
+let gameOn = false;
 
 // Function Declarations
 
@@ -50,15 +51,52 @@ const updateStatus = function(){
                 statusDiv.empty().append(`<p>Hold on...</p>`);
             }
         }
+    } else if (gameOn === true) {
+        if (whoAmI = "Two") {
+            restartButton.hide();
+            gameButtons.hide();
+            gameOn = false;
+            database.ref(`player${opponent}Again`).off("value");
+            database.ref(`player${whoAmI}Again`).set(false);
+            database.ref(`player${opponent}Again`).set(false);
+            database.ref("playerOneRPSValue").set("");
+            database.ref("playerTwoRPSValue").set("");
+            playersRPSValue.playerOne = "";
+            playersRPSValue.playerTwo = "";
+            statusDiv.empty();
+            whoAmIDiv.empty();
+            whoAmI = "One";
+            opponent = "Two";
+            whoAmIDiv.append(`<h3>Player One</h3>`);
+            statusDiv.append("<p>Player One left the game. You are now Player One. Waiting for another player to join.</p>");
+            database.ref("isPlayerTwo").onDisconnect().cancel();
+            database.ref("isPlayerTwo").set(false);
+            database.ref("isPlayerOne").set(true);
+            database.ref("isPlayerOne").onDisconnect().set(false);
+        } else {
+            restartButton.hide();
+            gameButtons.hide();
+            gameOn = false;
+            database.ref(`player${opponent}Again`).off("value");
+            database.ref(`player${whoAmI}Again`).set(false);
+            database.ref(`player${opponent}Again`).set(false);
+            database.ref("playerOneRPSValue").set("");
+            database.ref("playerTwoRPSValue").set("");
+            playersRPSValue.playerOne = "";
+            playersRPSValue.playerTwo = "";
+            statusDiv.empty().append("<p>Player Two left the game. Waiting for another player to join.</p>");
+        }
     }
 };
 
 const saveRPSValue = function(player, value, otherplayer){
-    gameButtons.hide();
-    if (playersRPSValue[`player${otherplayer}`] === "") {
-        statusDiv.empty().append(`<p>Waiting for Player ${otherplayer}.</p>`);
+    if (gameOn = true) {
+        gameButtons.hide();
+        if (playersRPSValue[`player${otherplayer}`] === "") {
+            statusDiv.empty().append(`<p>Waiting for Player ${otherplayer}.</p>`);
+        }
+        database.ref(`player${player}RPSValue`).set(value);
     }
-    database.ref(`player${player}RPSValue`).set(value);
 };
 
 const compareRPSValues = function(){
@@ -102,6 +140,7 @@ database.ref("isPlayerOne").on("value", function(snapshot){
                     if (whoAmI === "One") {
                         statusDiv.empty().append(`<p>Play!</p>`);
                     }
+                    gameOn = true;
                     gameButtons.show();
                 }
             }
@@ -165,19 +204,21 @@ database.ref("playerTwoRPSValue").on("value", function(snapshot){
 });
 
 restartButton.on("click", function(){
-    restartButton.hide();
-    database.ref("playerOneRPSValue").set("");
-    database.ref("playerTwoRPSValue").set("");
-    database.ref(`player${whoAmI}Again`).set(true);
-    database.ref(`player${opponent}Again`).on("value", function(snapshot){
-        if (snapshot.val() === false) {
-            statusDiv.empty().append(`<p>Waiting for Player ${opponent} to be ready.</p>`);
-        } else {
-            statusDiv.empty().append(`<p>Play!</p>`);
-            gameButtons.show();
-            database.ref(`player${opponent}Again`).off("value");
-            database.ref(`player${whoAmI}Again`).set(false);
-            database.ref(`player${opponent}Again`).set(false);
-        }
-    });
+    if (gameOn = true) {
+        restartButton.hide();
+        database.ref("playerOneRPSValue").set("");
+        database.ref("playerTwoRPSValue").set("");
+        database.ref(`player${whoAmI}Again`).set(true);
+        database.ref(`player${opponent}Again`).on("value", function(snapshot){
+            if (snapshot.val() === false) {
+                statusDiv.empty().append(`<p>Waiting for Player ${opponent} to be ready.</p>`);
+            } else if (gameOn = true) {
+                statusDiv.empty().append(`<p>Play!</p>`);
+                gameButtons.show();
+                database.ref(`player${opponent}Again`).off("value");
+                database.ref(`player${whoAmI}Again`).set(false);
+                database.ref(`player${opponent}Again`).set(false);
+            }
+        });
+    }
 });
